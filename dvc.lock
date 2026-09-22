@@ -1,0 +1,22 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: python -m src.training.train
+    deps:
+    - path: data/raw/customer_churn_historical.csv
+      hash: md5
+      md5: 178571792c566f067e3d16b5fb913026
+      size: 982638
+    - path: src/training/train.py
+      hash: md5
+      md5: 64298f13e63febaf682e2b74b2bf33f4
+      size: 5062
+    outs:
+    - path: models/churn_pipeline.joblib
+      hash: md5
+      md5: 402ef4c3a3689e7a8fec21ddeac273b9
+      size: 9114
+    - path: reports/metrics.json
+      hash: md5
+      md5: e1d48fd431cf63cb118ca5da2782fa2a
+      size: 639

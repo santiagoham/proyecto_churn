@@ -1,0 +1,10 @@
+stages:
+  train:
+    cmd: python -m src.training.train
+    deps:
+      - data/raw/customer_churn_historical.csv
+      - src/training/train.py
+    outs:
+      - models/churn_pipeline.joblib
+    metrics:
+      - reports/metrics.json

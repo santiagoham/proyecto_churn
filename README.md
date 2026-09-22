@@ -11,21 +11,26 @@ En esta primera etapa se comparan un modelo baseline, Regresión Logística y Ra
 ```text
 proyecto_churn/
 ├── data/
-│   └── customer_churn_historical.csv.dvc
+│   └── raw/
+├── models/
 ├── notebooks/
 │   ├── analisis.ipynb
 │   └── preparacion.ipynb
+├── reports/
 ├── src/
-│   └── entrenamiento.py
-├── .dvcignore
-├── .gitignore
+│   └── training/
+│       └── train.py
+├── dvc.yaml
 ├── requirements.txt
 └── README.md
 ```
 
-- `data/`: contiene los datos utilizados por el proyecto, versionados con DVC.
+- `data/raw/`: contiene los datos originales utilizados para el entrenamiento, versionados con DVC.
+- `models/`: contiene el modelo generado durante el entrenamiento.
 - `notebooks/`: contiene el análisis exploratorio y las pruebas de preparación y modelado.
-- `src/`: contiene el código Python para ejecutar el entrenamiento y la evaluación de los modelos.
+- `reports/`: contiene las métricas obtenidas durante la evaluación de los modelos.
+- `src/training/`: contiene el código Python para ejecutar el entrenamiento y la evaluación.
+- `dvc.yaml`: define la etapa reproducible de entrenamiento con DVC.
 - `requirements.txt`: contiene las dependencias necesarias para ejecutar el proyecto.
 
 ## Instalación
@@ -53,7 +58,7 @@ dvc pull
 El archivo utilizado para el entrenamiento se encuentra en:
 
 ```text
-data/customer_churn_historical.csv
+data/raw/customer_churn_historical.csv
 ```
 
 ## Entrenamiento
@@ -61,7 +66,7 @@ data/customer_churn_historical.csv
 Para entrenar y comparar los modelos, ejecutar desde la raíz del proyecto:
 
 ```powershell
-python src/entrenamiento.py
+python -m src.training.train
 ```
 
 El script realiza la división de los datos en entrenamiento y prueba, aplica el preprocesamiento mediante un Pipeline de scikit-learn y entrena tres modelos:
@@ -85,3 +90,11 @@ Los resultados obtenidos sobre el conjunto de prueba fueron:
 En esta primera comparación, la Regresión Logística obtuvo los mejores resultados entre los modelos evaluados, con un ROC-AUC de 0.812 y un Recall de 0.449 para la clase de abandono.
 
 El Recall es una métrica importante en este problema, ya que un falso negativo representa un cliente que realmente abandonará el servicio pero que el modelo no logra identificar.
+
+El entrenamiento también puede reproducirse mediante DVC:
+
+```powershell
+dvc repro
+```
+
+DVC ejecuta la etapa de entrenamiento definida en `dvc.yaml` y genera el modelo en `models/churn_pipeline.joblib` y las métricas en `reports/metrics.json`.
