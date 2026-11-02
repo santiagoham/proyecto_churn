@@ -1,12 +1,19 @@
+
+import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
 
-client = TestClient(app)
+
+# Para iniciar la aplicación durante las pruebas
+@pytest.fixture
+def client():
+    with TestClient(app) as cliente:
+        yield cliente
 
 
 # Para comprobar que la API funciona correctamente
-def test_health():
+def test_health(client):
     respuesta = client.get("/health")
     
     assert respuesta.status_code == 200
@@ -14,7 +21,7 @@ def test_health():
 
 
 # Para comprobar que la API realiza una predicción correctamente
-def test_predict():
+def test_predict(client):
     datos_cliente = {
         "gender": "Female",
         "SeniorCitizen": 0,
@@ -47,13 +54,12 @@ def test_predict():
     assert 0 <= resultado["probability"] <= 1
     assert resultado["risk_level"] in ["Bajo", "Medio", "Alto"]
     assert resultado["model_version"] == "3"
-    
     assert "request_id" in resultado
     assert len(resultado["request_id"]) > 0
 
 
 # Para comprobar que la API rechaza datos con un formato incorrecto
-def test_predict_datos_invalidos():
+def test_predict_datos_invalidos(client):
     datos_cliente = {
         "gender": "Female",
         "SeniorCitizen": 0,
@@ -82,7 +88,7 @@ def test_predict_datos_invalidos():
 
 
 # Para comprobar que la API rechaza categorías inexistentes
-def test_predict_categoria_invalida():
+def test_predict_categoria_invalida(client):
     datos_cliente = {
         "gender": "Female",
         "SeniorCitizen": 0,
@@ -111,7 +117,7 @@ def test_predict_categoria_invalida():
 
 
 # Para comprobar que la API rechaza valores fuera de rango
-def test_predict_tenure_fuera_de_rango():
+def test_predict_tenure_fuera_de_rango(client):
     datos_cliente = {
         "gender": "Female",
         "SeniorCitizen": 0,
