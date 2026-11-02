@@ -1,15 +1,18 @@
 # Predicción de abandono de clientes
 
-Proyecto de Machine Learning para predecir el abandono de clientes de una empresa de telecomunicaciones.
+Proyecto de Machine Learning para predecir si los clientes de una empresa de telecomunicaciones pueden abandonar el servicio.
 
-A partir de datos históricos de clientes, se realiza un análisis exploratorio, preparación de los datos y entrenamiento de distintos modelos de clasificación para estimar si un cliente abandonará o no el servicio.
+Para esto, se utilizan datos históricos de clientes, se realiza un análisis de los datos y se entrenan distintos modelos para comparar sus resultados y elegir el que mejor se adapte al problema.
 
-En esta primera etapa se comparan un modelo baseline, Regresión Logística y Random Forest utilizando distintas métricas de evaluación.
+Además, el proyecto cuenta con una API que permite ingresar los datos de un cliente y obtener una predicción sobre la posibilidad de que abandone el servicio.
 
 ## Estructura del proyecto
 
 ```text
 proyecto_churn/
+├── app/
+│   ├── main.py
+│   └── schemas.py
 ├── data/
 │   └── raw/
 ├── models/
@@ -20,24 +23,28 @@ proyecto_churn/
 ├── src/
 │   └── training/
 │       └── train.py
+├── tests/
+│   └── test_api.py
 ├── dvc.yaml
 ├── requirements.txt
 └── README.md
 ```
 
-- `data/raw/`: contiene los datos originales utilizados para el entrenamiento, versionados con DVC.
+- `app/`: contiene los archivos de la API y la definición de los datos que recibe y devuelve.
+- `data/raw/`: contiene los datos originales utilizados para el entrenamiento, guardados con DVC.
 - `models/`: contiene el modelo generado durante el entrenamiento.
-- `notebooks/`: contiene el análisis exploratorio y las pruebas de preparación y modelado.
-- `reports/`: contiene las métricas obtenidas durante la evaluación de los modelos.
-- `src/training/`: contiene el código Python para ejecutar el entrenamiento y la evaluación.
-- `dvc.yaml`: define la etapa reproducible de entrenamiento con DVC.
-- `requirements.txt`: contiene las dependencias necesarias para ejecutar el proyecto.
+- `notebooks/`: contiene los notebooks utilizados para analizar y preparar los datos.
+- `reports/`: contiene las métricas obtenidas al evaluar los modelos.
+- `src/training/`: contiene el código utilizado para entrenar y comparar los modelos.
+- `tests/`: contiene las pruebas para comprobar que la API funciona correctamente.
+- `dvc.yaml`: define los pasos del entrenamiento para poder volver a ejecutarlo con DVC.
+- `requirements.txt`: contiene las librerías necesarias para ejecutar el proyecto.
 
 ## Instalación
 
 Para ejecutar el proyecto es necesario tener instalado Python.
 
-Se recomienda crear un entorno virtual e instalar las dependencias del proyecto:
+Se recomienda crear un entorno virtual e instalar las dependencias:
 
 ```powershell
 python -m venv .venv
@@ -47,9 +54,9 @@ pip install -r requirements.txt
 
 ## Datos
 
-El dataset utilizado para el entrenamiento está versionado con DVC y almacenado en DagsHub.
+El dataset utilizado está guardado en DagsHub y se encuentra versionado con DVC.
 
-Para descargar los datos del proyecto:
+Para descargarlo, ejecutar:
 
 ```powershell
 dvc pull
@@ -63,19 +70,19 @@ data/raw/customer_churn_historical.csv
 
 ## Entrenamiento
 
-Para entrenar y comparar los modelos, ejecutar desde la raíz del proyecto:
+Para entrenar y comparar los modelos, ejecutar desde la carpeta principal del proyecto:
 
 ```powershell
 python -m src.training.train
 ```
 
-El script realiza la división de los datos en entrenamiento y prueba, aplica el preprocesamiento mediante un Pipeline de scikit-learn y entrena tres modelos:
+El script prepara los datos y entrena distintos modelos de clasificación:
 
 - Baseline (DummyClassifier)
 - Regresión Logística
 - Random Forest
 
-Finalmente, muestra una comparación utilizando Accuracy, Precision, Recall, F1 y ROC-AUC.
+Después, muestra los resultados de cada modelo utilizando distintas métricas: Accuracy, Precision, Recall, F1 y ROC-AUC.
 
 ## Resultados
 
@@ -87,14 +94,55 @@ Los resultados obtenidos sobre el conjunto de prueba fueron:
 | Regresión Logística | 0.794 | 0.663 | 0.449 | 0.535 | 0.812 |
 | Random Forest | 0.783 | 0.642 | 0.401 | 0.493 | 0.790 |
 
-En esta primera comparación, la Regresión Logística obtuvo los mejores resultados entre los modelos evaluados, con un ROC-AUC de 0.812 y un Recall de 0.449 para la clase de abandono.
+Entre los modelos comparados, la Regresión Logística obtuvo los mejores resultados y fue elegida para continuar con el proyecto.
 
-El Recall es una métrica importante en este problema, ya que un falso negativo representa un cliente que realmente abandonará el servicio pero que el modelo no logra identificar.
+En este problema, el Recall es importante porque permite observar cuántos de los clientes que realmente abandonan el servicio logra detectar el modelo. En este caso, todavía hay clientes que el modelo no consigue identificar.
 
-El entrenamiento también puede reproducirse mediante DVC:
+## Registro de experimentos
+
+Se utiliza MLflow para guardar los resultados de los entrenamientos y llevar un registro de los modelos evaluados. También se utiliza su Model Registry para guardar el modelo seleccionado.
+
+## API de predicción
+
+Se desarrolló una API con FastAPI para poder utilizar el modelo y obtener predicciones a partir de los datos de un cliente.
+
+La API cuenta con dos endpoints:
+
+- `GET /health`: permite comprobar que la API está funcionando.
+- `POST /predict`: recibe los datos de un cliente y devuelve la predicción, la probabilidad de abandono, el nivel de riesgo, la versión del modelo y un identificador de la solicitud.
+
+Los datos que recibe y devuelve la API tienen validaciones para evitar errores en las solicitudes.
+
+Para iniciar la aplicación, ejecutar desde la carpeta principal:
+
+```powershell
+uvicorn app.main:app --reload
+```
+
+La documentación de la API se puede consultar en:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+## Pruebas
+
+Se agregaron pruebas automáticas para comprobar que la API funciona y que rechaza los datos incorrectos.
+
+Para ejecutarlas, utilizar:
+
+```powershell
+python -m pytest -v
+```
+
+Las pruebas comprueban el funcionamiento del endpoint de estado, la realización de predicciones y el rechazo de datos con formatos, categorías o valores no permitidos.
+
+## Reproducir el entrenamiento con DVC
+
+También es posible volver a ejecutar el entrenamiento utilizando DVC:
 
 ```powershell
 dvc repro
 ```
 
-DVC ejecuta la etapa de entrenamiento definida en `dvc.yaml` y genera el modelo en `models/churn_pipeline.joblib` y las métricas en `reports/metrics.json`.
+Este comando ejecuta los pasos definidos en `dvc.yaml` y genera el modelo en `models/churn_pipeline.joblib` y las métricas en `reports/metrics.json`.
