@@ -113,6 +113,16 @@ La API cuenta con dos endpoints:
 
 Los datos que recibe y devuelve la API tienen validaciones para evitar errores en las solicitudes.
 
+### Niveles de riesgo
+
+La API clasifica la probabilidad de abandono en tres niveles:
+
+- **Bajo:** probabilidad menor a 0.40.
+- **Medio:** probabilidad desde 0.40 hasta menos de 0.70.
+- **Alto:** probabilidad igual o superior a 0.70.
+
+Estos umbrales permiten agrupar las predicciones en categorías para facilitar su interpretación. Se utilizan como criterios de segmentación del proyecto y no como umbrales optimizados estadísticamente.
+
 Para iniciar la aplicación, ejecutar desde la carpeta principal:
 
 ```powershell
@@ -135,7 +145,7 @@ Para ejecutarlas, utilizar:
 python -m pytest -v
 ```
 
-Las pruebas comprueban el funcionamiento del endpoint de estado, la realización de predicciones y el rechazo de datos con formatos, categorías o valores no permitidos.
+Las pruebas comprueban el funcionamiento del endpoint de estado, la realización de predicciones, el rechazo de datos con formatos, categorías o valores no permitidos y la asignación correcta de los niveles de riesgo según sus umbrales.
 
 ## Reproducir el entrenamiento con DVC
 

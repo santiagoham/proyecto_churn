@@ -1,4 +1,3 @@
-
 import pytest
 from fastapi.testclient import TestClient
 
@@ -143,3 +142,56 @@ def test_predict_tenure_fuera_de_rango(client):
     respuesta = client.post("/predict", json=datos_cliente)
     
     assert respuesta.status_code == 422
+
+
+# Para comprobar los niveles de riesgo según la probabilidad
+@pytest.mark.parametrize(
+    "probabilidad, riesgo_esperado",
+    [
+        (0.3999, "Bajo"),
+        (0.40, "Medio"),
+        (0.6999, "Medio"),
+        (0.70, "Alto")
+    ]
+)
+
+def test_predict_nivel_riesgo(client, monkeypatch, probabilidad, riesgo_esperado):
+    from app.main import ml
+    
+    class ModeloPrueba:
+        classes_ = [0, 1]
+        
+        def predict(self, datos):
+            return [0]
+        
+        def predict_proba(self, datos):
+            return [[1 - probabilidad, probabilidad]]
+    
+    monkeypatch.setitem(ml, "model", ModeloPrueba())
+    
+    datos_cliente = {
+        "gender": "Female",
+        "SeniorCitizen": 0,
+        "Partner": "Yes",
+        "Dependents": "No",
+        "tenure": 12,
+        "PhoneService": "Yes",
+        "MultipleLines": "No",
+        "InternetService": "Fiber optic",
+        "OnlineSecurity": "No",
+        "OnlineBackup": "Yes",
+        "DeviceProtection": "No",
+        "TechSupport": "No",
+        "StreamingTV": "Yes",
+        "StreamingMovies": "Yes",
+        "Contract": "Month-to-month",
+        "PaperlessBilling": "Yes",
+        "PaymentMethod": "Electronic check",
+        "MonthlyCharges": 85.5,
+        "TotalCharges": 1026.0
+    }
+    
+    respuesta = client.post("/predict", json=datos_cliente)
+    
+    assert respuesta.status_code == 200
+    assert respuesta.json()["risk_level"] == riesgo_esperado
