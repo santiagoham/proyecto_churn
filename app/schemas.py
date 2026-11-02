@@ -1,4 +1,3 @@
-
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -34,8 +33,8 @@ class DatosCliente(BaseModel):
 
 # Para definir y validar los datos que devuelve la API
 class PredictionResponse(BaseModel):
-    prediction: Literal[0, 1]
+    prediction: Literal["CHURN", "NO_CHURN"]
     probability: float = Field(ge=0, le=1)
-    risk_level: Literal["Bajo", "Medio", "Alto"]
+    risk_level: Literal["LOW", "MEDIUM", "HIGH"]
     model_version: str
     request_id: str

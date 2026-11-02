@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from uuid import uuid4
 from contextlib import asynccontextmanager
@@ -49,6 +48,11 @@ def predict(datos: DatosCliente):
     
     prediccion = int(modelo.predict(datos_cliente)[0])
     
+    if prediccion == 1:
+        resultado = "CHURN"
+    else:
+        resultado = "NO_CHURN"
+    
     clases = list(modelo.classes_)
     indice_positivo = clases.index(1)
     
@@ -57,14 +61,14 @@ def predict(datos: DatosCliente):
     )
     
     if probabilidad >= 0.7:
-        nivel_riesgo = "Alto"
+        nivel_riesgo = "HIGH"
     elif probabilidad >= 0.4:
-        nivel_riesgo = "Medio"
+        nivel_riesgo = "MEDIUM"
     else:
-        nivel_riesgo = "Bajo"
-        
+        nivel_riesgo = "LOW"
+    
     return {
-        "prediction": prediccion,
+        "prediction": resultado,
         "probability": round(probabilidad, 4),
         "risk_level": nivel_riesgo,
         "model_version": "3",
